@@ -177,6 +177,32 @@ export const PRODUCT_BY_SLUG_QUERY = groq`*[
   }
 }`;
 
+export const PRODUCT_BY_IDENTIFIER_QUERY = groq`*[
+  _type == "product" &&
+  (_id == $identifier || slug.current == $identifier) &&
+  isActive != false
+][0] {
+  _id,
+  name,
+  "slug": slug.current,
+  "brand": brand->{
+    _id,
+    name,
+    "slug": slug.current,
+    logo ${IMAGE_PROJECTION}
+  },
+  description,
+  price,
+  stock,
+  isFeatured,
+  image ${IMAGE_PROJECTION},
+  "category": category->{
+    _id,
+    title,
+    "slug": slug.current
+  }
+}`;
+
 export const BOOKINGS_BY_USER_QUERY = groq`*[
   _type == "bookingRequest" &&
   (email == $email || clerkUserId == $userId)
@@ -210,4 +236,42 @@ export const BOOKINGS_QUERY = groq`*[
   notes,
   status,
   createdAt
+}`;
+
+export const ALL_CATEGORIES_QUERY = groq`*[
+  _type == "category"
+] | order(title asc) {
+  _id,
+  title,
+  "slug": slug.current,
+  appliesTo,
+  description,
+  image ${IMAGE_PROJECTION}
+}`;
+
+export const PRODUCT_CATEGORIES_WITH_PRODUCTS_QUERY = groq`*[
+  _type == "category" &&
+  appliesTo in ["product", "both"] &&
+  count(*[
+    _type == "product" &&
+    isActive != false &&
+    references(^._id)
+  ]) > 0
+] | order(title asc) {
+  _id,
+  title,
+  "slug": slug.current,
+  appliesTo,
+  description,
+  image ${IMAGE_PROJECTION}
+}`;
+
+export const BRANDS_QUERY = groq`*[
+  _type == "brand" &&
+  isActive != false
+] | order(name asc) {
+  _id,
+  name,
+  "slug": slug.current,
+  logo ${IMAGE_PROJECTION}
 }`;

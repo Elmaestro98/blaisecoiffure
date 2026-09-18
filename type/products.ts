@@ -14,3 +14,13 @@ export type ProductSummary = {
     slug: string;
   } | null;
 };
+
+export type ProductDetail = ProductSummary & {
+  description?: string;
+  brand: {
+    _id: string;
+    name: string;
+    slug: string;
+    logo?: SanityImageLike;
+  } | null;
+};

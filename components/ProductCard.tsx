@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import type { ProductSummary } from "@/type/products";
+import { AddToCartButton } from "@/components/AddToCartButton";
 
 const ACCENT = "#7A1220";
 
@@ -13,20 +13,10 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const inStock = product.stock > 0;
   const imageUrl =
     typeof product.image === "string"
       ? product.image
       : (product.image?.asset?.url ?? null);
-
-  const handleAddToCart = () => {
-    if (!inStock) return;
-    if (onAddToCart) {
-      onAddToCart(product);
-    } else {
-      toast.success(`${product.name} ajouté au panier`);
-    }
-  };
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -58,15 +48,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         {product.price.toLocaleString("fr-FR")} CFA
       </p>
 
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        disabled={!inStock}
-        className="mt-4 w-full max-w-[220px] rounded-full py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{ backgroundColor: ACCENT }}
-      >
-        {inStock ? "Ajouter au panier" : "Rupture de stock"}
-      </button>
+      <div className="mt-4 w-full max-w-[220px]">
+        <AddToCartButton product={product} onAddToCart={onAddToCart} />
+      </div>
     </div>
   );
 }

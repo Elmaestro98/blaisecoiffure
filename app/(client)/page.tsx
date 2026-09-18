@@ -2,6 +2,7 @@ import React from "react";
 import Container from "@/components/Container";
 import Banner from "@/components/Banner";
 import FeaturedServices from "@/components/FeaturedService";
+import { CategoryGrid } from "@/components/CategotyGrid";
 import { sanityFetch } from "@/sanity/lib/live";
 import {
   POPULAR_SERVICES_QUERY,
@@ -14,8 +15,14 @@ import {
   type ProductCategory,
 } from "@/components/ProductCatalog";
 import type { ProductSummary } from "@/type/products";
+import { BrandSection } from "@/components/BrandSectioni";
 
-const Home = async () => {
+type HomeProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+const Home = async ({ searchParams }: HomeProps) => {
+  const { q = "" } = await searchParams;
   const [
     { data: servicesData },
     { data: productsData },
@@ -33,8 +40,14 @@ const Home = async () => {
   return (
     <Container>
       <Banner />
+      <CategoryGrid />
       <FeaturedServices services={services} />
-      <ProductCatalog products={products} categories={categories} />
+      <BrandSection />
+      <ProductCatalog
+        products={products}
+        categories={categories}
+        initialSearchQuery={q}
+      />
     </Container>
   );
 };

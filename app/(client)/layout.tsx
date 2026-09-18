@@ -1,8 +1,10 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/Header";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { CartDrawer } from "@/components/CartDrawer";
 import { sanityFetch } from "@/sanity/lib/live";
-import { ANNOUNCEMENT_BAR_QUERY } from "@/sanity/queries";
+import { ANNOUNCEMENT_BAR_QUERY, PRODUCTS_QUERY } from "@/sanity/queries";
+import type { ProductSummary } from "@/type/products";
 
 type AnnouncementBarData = {
   intervalMs: number;
@@ -18,8 +20,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data } = await sanityFetch({ query: ANNOUNCEMENT_BAR_QUERY });
-  const announcementBar = data as AnnouncementBarData | null;
+  const [{ data: announcementData }, { data: productsData }] =
+    await Promise.all([
+      sanityFetch({ query: ANNOUNCEMENT_BAR_QUERY }),
+      sanityFetch({ query: PRODUCTS_QUERY }),
+    ]);
+  const announcementBar = announcementData as AnnouncementBarData | null;
+  const products = (productsData ?? []) as ProductSummary[];
 
   return (
     <ClerkProvider>
@@ -30,7 +37,8 @@ export default async function RootLayout({
             intervalMs={announcementBar.intervalMs}
           />
         ) : null}
-        <Header />
+        <Header products={products} />
+        <CartDrawer />
         <main className="flex-1">{children}</main>
       </div>
     </ClerkProvider>
