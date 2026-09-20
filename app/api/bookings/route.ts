@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getWriteClient } from "@/sanity/lib/writeClient";
 import { sendBookingEmails } from "@/lib/email";
+import { siteWhatsApp } from "@/lib/site";
 
-const WHATSAPP_RECIPIENT_PHONE = process.env.WHATSAPP_RECIPIENT_PHONE;
+// On accepte les deux noms de variable (la version NEXT_PUBLIC_ est celle
+// utilisee par la page checkout) et, a defaut, le numero du salon defini
+// dans lib/site.ts. Ce lien n'est donc jamais vide.
+const WHATSAPP_RECIPIENT_PHONE =
+  process.env.WHATSAPP_RECIPIENT_PHONE ||
+  process.env.NEXT_PUBLIC_WHATSAPP_RECIPIENT_PHONE ||
+  siteWhatsApp;
 
 export async function POST(request: Request) {
   try {
