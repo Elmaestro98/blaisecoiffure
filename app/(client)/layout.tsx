@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/Header";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { CartDrawer } from "@/components/CartDrawer";
+import { Footer } from "@/components/Footer";
 import { sanityFetch } from "@/sanity/lib/live";
 import { ANNOUNCEMENT_BAR_QUERY, PRODUCTS_QUERY } from "@/sanity/queries";
 import type { ProductSummary } from "@/type/products";
@@ -40,6 +41,7 @@ export default async function RootLayout({
         <Header products={products} />
         <CartDrawer />
         <main className="flex-1">{children}</main>
+        <Footer />
       </div>
     </ClerkProvider>
   );

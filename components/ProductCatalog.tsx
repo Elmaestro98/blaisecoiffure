@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   ChevronLeft,
@@ -31,8 +31,15 @@ export function ProductCatalog({
 }: ProductCatalogProps) {
   const productsPerPage = 8;
   const [activeCategory, setActiveCategory] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const searchQuery = initialSearchQuery.trim().toLocaleLowerCase("fr-FR");
+
+  // La page appartient à une combinaison de filtres : si les filtres changent,
+  // la clé ne correspond plus et on retombe sur la page 1 (sans useEffect).
+  const filterKey = `${activeCategory}|${searchQuery}`;
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const requestedPage = pageState.key === filterKey ? pageState.page : 1;
+  const goToPage = (page: number) => setPageState({ key: filterKey, page });
+
   const visibleProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesCategory =
@@ -47,10 +54,9 @@ export function ProductCatalog({
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, products, searchQuery]);
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeCategory, searchQuery]);
+
   const totalPages = Math.ceil(visibleProducts.length / productsPerPage);
+  const currentPage = Math.min(requestedPage, Math.max(1, totalPages));
   const paginatedProducts = visibleProducts.slice(
     (currentPage - 1) * productsPerPage,
     currentPage * productsPerPage,
@@ -87,10 +93,7 @@ export function ProductCatalog({
               type="button"
               role="tab"
               aria-selected={activeCategory === "all"}
-              onClick={() => {
-                setActiveCategory("all");
-                setCurrentPage(1);
-              }}
+              onClick={() => setActiveCategory("all")}
               className={cn(
                 "shrink-0 rounded-full px-4 py-2 text-sm font-bold transition",
                 activeCategory === "all"
@@ -106,10 +109,7 @@ export function ProductCatalog({
                 type="button"
                 role="tab"
                 aria-selected={activeCategory === category.slug}
-                onClick={() => {
-                  setActiveCategory(category.slug);
-                  setCurrentPage(1);
-                }}
+                onClick={() => setActiveCategory(category.slug)}
                 className={cn(
                   "shrink-0 rounded-full px-4 py-2 text-sm font-bold transition",
                   activeCategory === category.slug
@@ -160,10 +160,7 @@ export function ProductCatalog({
             </p>
             <button
               type="button"
-              onClick={() => {
-                setActiveCategory("all");
-                setCurrentPage(1);
-              }}
+              onClick={() => setActiveCategory("all")}
               className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#8E2332] hover:underline"
             >
               Voir toute la boutique <ArrowRight className="h-4 w-4" />
@@ -178,7 +175,7 @@ export function ProductCatalog({
           >
             <button
               type="button"
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              onClick={() => goToPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
               aria-label="Page précédente"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E8D9D5] text-[#8E2332] transition hover:bg-[#F4E2E5] disabled:cursor-not-allowed disabled:opacity-40"
@@ -192,9 +189,7 @@ export function ProductCatalog({
 
             <button
               type="button"
-              onClick={() =>
-                setCurrentPage((page) => Math.min(totalPages, page + 1))
-              }
+              onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               aria-label="Page suivante"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E8D9D5] text-[#8E2332] transition hover:bg-[#F4E2E5] disabled:cursor-not-allowed disabled:opacity-40"

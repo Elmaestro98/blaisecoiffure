@@ -118,12 +118,12 @@ export default function CartPage() {
               <span>Total</span>
               <span>{total.toLocaleString("fr-FR")} FCFA</span>
             </div>
-            <button
-              type="button"
+            <Link
               className="mt-6 w-full rounded-full bg-[#7A1220] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+              href="/checkout"
             >
               Passer la commande
-            </button>
+            </Link>
           </aside>
         </div>
       )}

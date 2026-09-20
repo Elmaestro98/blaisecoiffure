@@ -174,12 +174,14 @@ export function CartDrawer() {
                     <span>{subtotal.toLocaleString("fr-FR")} CFA</span>
                   </div>
 
-                  <button
-                    className="mb-3 w-full rounded-full py-3.5 text-sm font-semibold text-white transition hover:brightness-110"
+                  <Link
+                    href="/checkout"
+                    onClick={closeCart}
+                    className="mb-3 block w-full rounded-full py-3.5 text-center text-sm font-semibold text-white transition hover:brightness-110"
                     style={{ backgroundColor: ACCENT }}
                   >
                     VALIDER LA COMMANDE
-                  </button>
+                  </Link>
 
                   <Link
                     href="/panier"

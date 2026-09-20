@@ -12,6 +12,39 @@ export const ANNOUNCEMENT_BAR_QUERY = groq`
   }
 `;
 
+export const ABOUT_SECTION_QUERY = groq`*[_type == "aboutSection"][0]{
+  eyebrow,
+  title,
+  description,
+  ctaLabel,
+  ctaHref,
+  reverse,
+  "image": image {
+    asset-> {
+      _id,
+      url,
+      metadata { dimensions, lqip }
+    },
+    crop,
+    hotspot
+  },
+  stats[]{
+    value,
+    label
+  }
+}`;
+
+export const GALLERY_SECTION_QUERY = groq`*[_type == "gallerySection"][0]{
+  eyebrow,
+  title,
+  items[]{
+    "id": coalesce(_key, image.asset->_id),
+    alt,
+    category,
+    "src": image.asset->url
+  }
+}`;
+
 const IMAGE_PROJECTION = `{
   asset->{
     _id,

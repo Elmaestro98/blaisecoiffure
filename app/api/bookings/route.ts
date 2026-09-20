@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getWriteClient } from "@/sanity/lib/writeClient";
 
+const WHATSAPP_RECIPIENT_PHONE = process.env.WHATSAPP_RECIPIENT_PHONE;
+
 export async function POST(request: Request) {
   try {
     const user = await currentUser();
@@ -60,9 +62,31 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     });
 
+    let whatsappUrl = "";
+    if (WHATSAPP_RECIPIENT_PHONE) {
+      const whatsappMessage = [
+        "Bonjour Blaise Coiffure, je viens de faire une demande de réservation.",
+        "",
+        `Client : ${String(fullName)}`,
+        `Téléphone : ${String(phone)}`,
+        `Email : ${String(email)}`,
+        `Service : ${String(service)}`,
+        `Date : ${String(date)}`,
+        `Heure : ${String(time)}`,
+        `Message : ${notes ? String(notes) : "Aucun"}`,
+        `Référence : ${booking._id}`,
+      ].join("\n");
+      whatsappUrl = `https://wa.me/${WHATSAPP_RECIPIENT_PHONE.replace(/\D/g, "")}?text=${encodeURIComponent(whatsappMessage)}`;
+    } else {
+      console.warn(
+        "WHATSAPP_RECIPIENT_PHONE is not configured; WhatsApp link skipped.",
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
+        whatsappUrl,
         booking,
       },
       { status: 201 },

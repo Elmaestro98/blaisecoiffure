@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, type ElementType } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Shield, Truck, CreditCard, Clock, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 
-const icons: Record<string, React.ElementType> = {
+const icons: Record<string, ElementType> = {
   shield: Shield,
   truck: Truck,
   creditCard: CreditCard,
@@ -24,27 +24,24 @@ export function AnnouncementBar({
 }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [dismissed, setDismissed] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.sessionStorage.getItem("announcement-dismissed") === "1",
-  );
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (paused || dismissed) return;
-    timerRef.current = setInterval(() => {
+    if (paused || dismissed || messages.length < 2) return;
+    const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % messages.length);
     }, intervalMs);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => clearInterval(timer);
   }, [paused, dismissed, intervalMs, messages.length]);
 
-  if (dismissed) return null;
+  if (dismissed || !messages.length) return null;
 
-  const current = messages[index];
-  const Icon = current.icon ? icons[current.icon] : null;
+  // Index dérivé au rendu : reste valide même si messages.length change
+  const safeIndex = index % messages.length;
+  const current = messages[safeIndex];
+  const Icon: ElementType | null = current.icon
+    ? (icons[current.icon] ?? null)
+    : null;
 
   const content = (
     <span className="flex items-center gap-2">
@@ -61,7 +58,7 @@ export function AnnouncementBar({
     >
       <AnimatePresence mode="wait">
         <motion.div
-          key={index}
+          key={`${safeIndex}-${current.text}`}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -20, opacity: 0 }}
@@ -86,7 +83,7 @@ export function AnnouncementBar({
               key={i}
               onClick={() => setIndex(i)}
               className={`h-1 rounded-full transition-all ${
-                i === index ? "w-4 bg-[#F2F0EC]" : "w-1.5 bg-white/30"
+                i === safeIndex ? "w-4 bg-[#F2F0EC]" : "w-1.5 bg-white/30"
               }`}
               aria-label={`Message ${i + 1}`}
             />
@@ -96,10 +93,7 @@ export function AnnouncementBar({
 
       {/* Fermer */}
       <button
-        onClick={() => {
-          sessionStorage.setItem("announcement-dismissed", "1");
-          setDismissed(true);
-        }}
+        onClick={() => setDismissed(true)}
         className="absolute left-3 top-1/2 -translate-y-1/2 text-[#F2F0EC]/70 transition hover:text-[#F2F0EC]"
         aria-label="Fermer"
       >
@@ -108,4 +102,5 @@ export function AnnouncementBar({
     </div>
   );
 }
+
 export default AnnouncementBar;
