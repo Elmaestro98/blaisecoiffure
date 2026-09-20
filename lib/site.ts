@@ -33,3 +33,12 @@ export const siteWhatsApp = "221774615064";
 
 export const siteDescription =
   "Salon de coiffure et institut de beauté à Saint-Louis, Sénégal : coupe, coloration, balayage, extensions, soins du visage, manucure et pédicure. Réservez votre rendez-vous en ligne.";
+
+// Google Analytics 4. Actif uniquement en production : en développement
+// (npm run dev) rien n'est chargé, pour ne pas fausser les statistiques.
+// NEXT_PUBLIC_GA_ID permet de surcharger sans toucher au code.
+const GA_MEASUREMENT_ID = "G-54WDZLGGRH";
+
+export const gaId =
+  process.env.NEXT_PUBLIC_GA_ID ||
+  (process.env.NODE_ENV === "production" ? GA_MEASUREMENT_ID : "");

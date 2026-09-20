@@ -4,7 +4,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Manrope, Oswald } from "next/font/google";
 import type { Metadata } from "next";
 import { SanityLive } from "@/sanity/lib/live";
-import { siteDescription, siteName, siteUrl } from "@/lib/site";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { gaId, siteDescription, siteName, siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   // Base obligatoire pour que Next génère des URLs absolues (sitemap, partages)
@@ -68,6 +69,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             }}
           />
         </body>
+        {/* Google Analytics : charge apres l'hydratation, ne ralentit pas
+            l'affichage. Sans la variable d'environnement, rien n'est charge
+            (utile en developpement : on ne pollue pas les statistiques). */}
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </html>
     </ClerkProvider>
   );
