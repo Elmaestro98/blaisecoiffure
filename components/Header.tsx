@@ -6,7 +6,8 @@ import Image from "next/image";
 import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import HeaderMenu from "./HeaderMenu";
 import useStore from "@/store";
 import type { ProductSummary } from "@/type/products";
@@ -14,6 +15,13 @@ import type { ProductSummary } from "@/type/products";
 type HeaderProps = {
   products: ProductSummary[];
 };
+
+// À aligner avec les liens de HeaderMenu
+const mobileLinks = [
+  { label: "Accueil", href: "/" },
+  { label: "Produits", href: "/#produits" },
+  { label: "Réservation", href: "/reservation" },
+];
 
 const Header = ({ products }: HeaderProps) => {
   const pathname = usePathname();
@@ -23,8 +31,10 @@ const Header = ({ products }: HeaderProps) => {
 
   const urlQuery = searchParams.get("q") ?? "";
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(urlQuery);
   const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
   // Synchronisation URL -> input pendant le rendu (pas d'effet, pas de rendu en cascade).
   // On ne réécrit pas l'input si l'URL correspond déjà à sa valeur "trimmée" (garde les espaces en fin de saisie).
@@ -34,6 +44,30 @@ const Header = ({ products }: HeaderProps) => {
       setSearchQuery(urlQuery);
     }
   }
+
+  // Ferme le menu mobile quand la page change
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setIsMenuOpen(false);
+  }
+
+  // Menu ouvert : Échap pour fermer + blocage du scroll de la page
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMenuOpen]);
 
   const cartItemCount = useStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
@@ -69,6 +103,7 @@ const Header = ({ products }: HeaderProps) => {
   };
 
   const closeSearch = () => setIsSearchOpen(false);
+  const closeMenu = () => setIsMenuOpen(false);
 
   const iconBtn =
     "grid h-9 w-9 shrink-0 place-items-center rounded-full transition sm:h-10 sm:w-10";
@@ -83,8 +118,8 @@ const Header = ({ products }: HeaderProps) => {
     <header
       className={
         isHome
-          ? "absolute inset-x-0 top-2 z-30 text-white sm:top-3"
-          : "relative z-30 border-b border-neutral-200 bg-white text-neutral-900 shadow-sm"
+          ? "absolute inset-x-0 top-6 z-30 text-white sm:top-3"
+          : "relative z-30 border-b border-neutral-200 bg-white pt-3 text-neutral-900 shadow-sm sm:pt-0"
       }
     >
       <Container className="flex items-center justify-between gap-2 py-3 sm:gap-4 sm:py-5">
@@ -106,7 +141,10 @@ const Header = ({ products }: HeaderProps) => {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
-            aria-label="Menu"
+            aria-label="Ouvrir le menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setIsMenuOpen(true)}
             className={
               isHome
                 ? "shrink-0 rounded-full bg-white/10 p-2 text-white backdrop-blur transition hover:bg-white/20 md:hidden"
@@ -121,7 +159,7 @@ const Header = ({ products }: HeaderProps) => {
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           {isSearchOpen ? (
-            <div className="fixed inset-x-3 top-3 z-50 sm:relative sm:inset-auto sm:z-auto">
+            <div className="fixed inset-x-3 top-6 z-50 sm:relative sm:inset-auto sm:z-auto">
               <form
                 onSubmit={(event) => event.preventDefault()}
                 className="flex items-center gap-2 rounded-full bg-white p-1 shadow-lg sm:bg-transparent sm:p-0 sm:shadow-none"
@@ -212,6 +250,73 @@ const Header = ({ products }: HeaderProps) => {
           </Show>
         </div>
       </Container>
+
+      {/* Menu mobile */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={closeMenu}
+              aria-hidden="true"
+            />
+
+            <motion.nav
+              id="mobile-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Menu principal"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute inset-y-0 left-0 flex w-[80%] max-w-xs flex-col bg-white p-5 text-neutral-900 shadow-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold uppercase tracking-[0.18em] text-[#7A1220]">
+                  Menu
+                </span>
+                <button
+                  type="button"
+                  aria-label="Fermer le menu"
+                  onClick={closeMenu}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 text-neutral-800 transition hover:bg-neutral-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <ul className="mt-8 flex flex-col">
+                {mobileLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      onClick={closeMenu}
+                      className="block border-b border-neutral-100 py-4 text-lg font-semibold transition hover:text-[#B8283A]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/reservation"
+                onClick={closeMenu}
+                className="mt-auto inline-flex items-center justify-center rounded-full bg-[#B8283A] px-5 py-3 text-sm font-bold text-white transition hover:brightness-110"
+              >
+                Réserver un rendez-vous
+              </Link>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

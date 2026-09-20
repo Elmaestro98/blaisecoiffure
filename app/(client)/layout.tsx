@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/Header";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -38,10 +39,16 @@ export default async function RootLayout({
             intervalMs={announcementBar.intervalMs}
           />
         ) : null}
-        <Header products={products} />
-        <CartDrawer />
+        <Suspense fallback={null}>
+          <Header products={products} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <CartDrawer />
+        </Suspense>
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </div>
     </ClerkProvider>
   );
