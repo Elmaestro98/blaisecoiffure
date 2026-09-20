@@ -8,4 +8,5 @@ export const headerData = [
   { title: "À propos", href: "/#apropos" },
   { title: "Contact", href: "/#contact" },
   { title: "Mes réservations", href: "/mes-reservations" },
+  { title: "Mes commandes", href: "/mes-commandes" },
 ];

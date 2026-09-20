@@ -18,12 +18,20 @@ const WHATSAPP_RECIPIENT_PHONE =
 
 export default function CheckoutPage() {
   const items = useStore((state) => state.items);
+  const resetCart = useStore((state) => state.resetCart);
   const total = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0,
   );
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  // Copie des lignes au moment de la validation : le panier est vide ensuite,
+  // mais l'ecran de confirmation doit encore pouvoir les afficher.
+  const [orderedItems, setOrderedItems] = useState<typeof items>([]);
+  const [orderedTotal, setOrderedTotal] = useState(0);
   const [payNow, setPayNow] = useState(false);
   const [orderAction, setOrderAction] = useState<"whatsapp" | "wave" | null>(
     null,
@@ -60,22 +68,51 @@ export default function CheckoutPage() {
     return `https://wa.me/${WHATSAPP_RECIPIENT_PHONE.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
   }, [fullName, items, payNow, phone, total]);
 
-  const registerOrderAction = (action: "whatsapp" | "wave") => {
-    const reference = `BC-${Date.now().toString(36).toUpperCase()}`;
-    setOrderReference(reference);
-    setOrderAction(action);
-    localStorage.setItem(
-      "blaise-order",
-      JSON.stringify({
-        reference,
-        action,
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        items,
-        total,
-        createdAt: new Date().toISOString(),
-      }),
-    );
+  // Enregistre la commande cote serveur AVANT d'ouvrir WhatsApp ou Wave :
+  // meme si la cliente n'envoie jamais le message, le salon a la trace.
+  const registerOrderAction = async (action: "whatsapp" | "wave") => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setSaveError("");
+
+    const snapshotItems = items;
+    const snapshotTotal = total;
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          email: email.trim() || undefined,
+          paymentMethod: action,
+          items: snapshotItems.map(({ product, quantity }) => ({
+            productId: product._id,
+            quantity,
+          })),
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error ?? "La commande n’a pas pu être enregistrée.");
+      }
+
+      setOrderedItems(snapshotItems);
+      setOrderedTotal(result?.total ?? snapshotTotal);
+      setOrderReference(result?.reference ?? "");
+      setOrderAction(action);
+      resetCart();
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "La commande n’a pas pu être enregistrée.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!items.length) {
@@ -116,10 +153,10 @@ export default function CheckoutPage() {
           <div className="mt-8 rounded-2xl bg-[#FBF7F5] p-5">
             <div className="flex items-center justify-between text-sm font-semibold text-[#24171A]">
               <span>Total</span>
-              <span>{total.toLocaleString("fr-FR")} FCFA</span>
+              <span>{orderedTotal.toLocaleString("fr-FR")} FCFA</span>
             </div>
             <div className="mt-4 space-y-2 border-t border-[#E8D9D5] pt-4 text-sm text-[#756563]">
-              {items.map(({ product, quantity }) => (
+              {orderedItems.map(({ product, quantity }) => (
                 <div key={product._id} className="flex justify-between gap-4">
                   <span>
                     {product.name} x{quantity}
@@ -137,12 +174,29 @@ export default function CheckoutPage() {
               ? "Terminez le paiement dans Wave. L’équipe pourra ensuite confirmer votre commande."
               : "L’équipe va confirmer votre commande sur WhatsApp."}
           </p>
-          <Link
-            href="/"
-            className="mt-8 inline-flex rounded-full bg-[#7A1220] px-6 py-3 text-sm font-semibold text-white"
-          >
-            Continuer mes achats
-          </Link>
+          <p className="mt-6 rounded-xl border border-[#E8D9D5] bg-white p-4 text-sm leading-6 text-[#756563]">
+            Notez votre référence <strong>{orderReference}</strong> : elle vous
+            permet de suivre la commande depuis{" "}
+            <Link href="/mes-commandes" className="font-semibold text-[#7A1220] hover:underline">
+              Mes commandes
+            </Link>
+            , même sans compte.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/mes-commandes"
+              className="inline-flex rounded-full bg-[#7A1220] px-6 py-3 text-sm font-semibold text-white"
+            >
+              Suivre ma commande
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex rounded-full border border-[#E8D9D5] bg-white px-6 py-3 text-sm font-semibold text-[#24171A]"
+            >
+              Continuer mes achats
+            </Link>
+          </div>
         </section>
       </main>
     );
@@ -188,6 +242,16 @@ export default function CheckoutPage() {
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="+221 77 000 00 00"
+                className="mt-2 h-12 w-full rounded-xl border border-[#E8D9D5] bg-white px-4 font-normal outline-none focus:border-[#7A1220]"
+              />
+            </label>
+            <label className="text-sm font-semibold text-[#24171A] sm:col-span-2">
+              Email <span className="font-normal text-[#9C8D89]">(facultatif — pour recevoir un récapitulatif)</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="marie@exemple.com"
                 className="mt-2 h-12 w-full rounded-xl border border-[#E8D9D5] bg-white px-4 font-normal outline-none focus:border-[#7A1220]"
               />
             </label>
@@ -281,6 +345,12 @@ export default function CheckoutPage() {
               Renseignez votre nom et votre téléphone pour valider la commande.
             </p>
           )}
+
+          {saveError ? (
+            <p className="mt-4 rounded-xl border border-[#E8B4B4] bg-[#FDF2F2] p-3 text-xs leading-5 text-[#8E2332]">
+              {saveError}
+            </p>
+          ) : null}
 
           {payNow && WAVE_PAYMENT_LINK ? (
             <a

@@ -8,5 +8,9 @@ export const config = {
     "/reservation(.*)",
     "/admin(.*)",
     "/api/bookings(.*)",
+    // Necessaire pour que currentUser() soit disponible dans les routes
+    // commandes. clerkMiddleware() n'impose pas la connexion : la creation
+    // d'une commande reste ouverte, seul PATCH verifie l'administrateur.
+    "/api/orders(.*)",
   ],
 };

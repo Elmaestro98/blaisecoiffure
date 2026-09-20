@@ -188,3 +188,163 @@ export async function sendBookingEmails(b: BookingEmailData) {
 
   return { client: ok(rClient), salon: ok(rSalon) };
 }
+
+// ---------------------------------------------------------------- commandes
+
+export type OrderEmailData = {
+  reference: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  total: number;
+  paymentMethod: "whatsapp" | "wave";
+  items: {
+    name: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+  }[];
+};
+
+const fcfa = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
+
+function orderRows(o: OrderEmailData) {
+  const lignes = o.items
+    .map(
+      (i) =>
+        `<tr>
+           <td style="padding:8px 0;color:#24171A;font-size:14px">${escapeHtml(i.name)} <span style="color:#9C8D89">x${i.quantity}</span></td>
+           <td style="padding:8px 0;color:#24171A;font-size:14px;font-weight:600;text-align:right">${fcfa(i.lineTotal)}</td>
+         </tr>`,
+    )
+    .join("");
+
+  return `${lignes}
+    <tr>
+      <td style="padding:12px 0 0;border-top:1px solid #E8D9D5;color:#24171A;font-size:15px;font-weight:700">Total</td>
+      <td style="padding:12px 0 0;border-top:1px solid #E8D9D5;color:${ACCENT};font-size:15px;font-weight:700;text-align:right">${fcfa(o.total)}</td>
+    </tr>`;
+}
+
+function orderLayout(titre: string, intro: string, o: OrderEmailData, pied: string) {
+  return `<!doctype html>
+<html lang="fr"><body style="margin:0;background:#FBF7F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FBF7F5;padding:24px 12px">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #F2E6E3">
+        <tr><td style="background:${ACCENT};padding:24px">
+          <p style="margin:0;color:#F1C8C8;font-size:11px;letter-spacing:2px;text-transform:uppercase">${siteName} · ${siteCity}</p>
+          <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;line-height:1.3">${titre}</h1>
+        </td></tr>
+        <tr><td style="padding:24px">
+          <p style="margin:0 0 20px;color:#756563;font-size:15px;line-height:1.6">${intro}</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#FDF7F6;border:1px solid #F2E6E3;border-radius:12px;padding:8px 16px">
+            ${orderRows(o)}
+          </table>
+          <p style="margin:18px 0 0;color:#756563;font-size:13px">
+            Client : <strong style="color:#24171A">${escapeHtml(o.customerName)}</strong> · ${escapeHtml(o.phone)}<br>
+            Paiement : ${o.paymentMethod === "wave" ? "Wave" : "à confirmer avec le salon"}
+          </p>
+          <p style="margin:12px 0 0;color:#9C8D89;font-size:12px">Référence : ${escapeHtml(o.reference)}</p>
+        </td></tr>
+        <tr><td style="padding:0 24px 24px">
+          <p style="margin:0;color:#756563;font-size:13px;line-height:1.6;border-top:1px solid #F2E6E3;padding-top:16px">${pied}</p>
+          <p style="margin:12px 0 0;color:#9C8D89;font-size:12px">
+            ${siteName} — ${siteCity} · ${sitePhoneDisplay}<br>
+            <a href="${siteUrl}" style="color:${ACCENT}">${siteUrl.replace("https://", "")}</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
+function texteCommande(o: OrderEmailData) {
+  return [
+    `Commande ${o.reference}`,
+    "",
+    ...o.items.map((i) => `- ${i.name} x${i.quantity} : ${fcfa(i.lineTotal)}`),
+    "",
+    `Total : ${fcfa(o.total)}`,
+    `Client : ${o.customerName} (${o.phone})`,
+    `Paiement : ${o.paymentMethod === "wave" ? "Wave" : "a confirmer"}`,
+  ].join("\n");
+}
+
+/**
+ * Notification de commande : au salon toujours, au client seulement s'il a
+ * laisse son e-mail (le champ est facultatif au checkout).
+ */
+export async function sendOrderEmails(o: OrderEmailData) {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY absente : aucun e-mail de commande envoye.");
+    return { client: false, salon: false, reason: "missing_api_key" as const };
+  }
+
+  const resend = new Resend(apiKey);
+
+  const auSalon = resend.emails.send({
+    from: FROM,
+    to: SALON_INBOX,
+    replyTo: o.email || undefined,
+    subject: `Nouvelle commande — ${o.customerName} — ${fcfa(o.total)}`,
+    text: [texteCommande(o), "", `Gerer : ${siteUrl}/admin/commandes`].join("\n"),
+    html: orderLayout(
+      "Nouvelle commande",
+      "Une commande vient d'être passée sur le site. Elle est en attente tant que vous ne l'avez pas confirmée.",
+      o,
+      `<a href="${siteUrl}/admin/commandes" style="color:${ACCENT};font-weight:600">Gérer les commandes</a>`,
+    ),
+  });
+
+  const auClient = o.email
+    ? resend.emails.send({
+        from: FROM,
+        to: o.email,
+        subject: `Votre commande ${o.reference} — ${siteName}`,
+        text: [
+          `Bonjour ${o.customerName},`,
+          "",
+          "Nous avons bien recu votre commande.",
+          "",
+          texteCommande(o),
+          "",
+          "Notre equipe vous recontacte pour la livraison.",
+          `${siteName} — ${siteCity} — ${sitePhoneDisplay}`,
+        ].join("\n"),
+        html: orderLayout(
+          "Commande bien reçue",
+          `Bonjour ${escapeHtml(o.customerName)}, merci pour votre commande. Notre équipe vous recontacte rapidement pour la livraison et le paiement.`,
+          o,
+          "Une question ? Répondez à cet e-mail ou appelez-nous.",
+        ),
+      })
+    : null;
+
+  const [rSalon, rClient] = await Promise.allSettled([
+    auSalon,
+    auClient ?? Promise.resolve({ error: null }),
+  ]);
+
+  const ok = (r: PromiseSettledResult<{ error: unknown }>) =>
+    r.status === "fulfilled" && !r.value?.error;
+
+  if (!ok(rSalon)) {
+    console.error(
+      "E-mail de commande (salon) non envoye :",
+      rSalon.status === "fulfilled" ? rSalon.value.error : rSalon.reason,
+    );
+  }
+  if (o.email && !ok(rClient)) {
+    console.error(
+      "E-mail de commande (client) non envoye :",
+      rClient.status === "fulfilled" ? rClient.value.error : rClient.reason,
+    );
+  }
+
+  return { salon: ok(rSalon), client: o.email ? ok(rClient) : false };
+}

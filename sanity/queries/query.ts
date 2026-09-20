@@ -323,3 +323,52 @@ export const SITEMAP_QUERY = groq`{
     _type == "category" && appliesTo in ["product", "both"] && defined(slug.current)
   ]{ "slug": slug.current, _updatedAt }
 }`;
+
+// Prix reels des produits, pour recalculer le total cote serveur.
+export const PRODUCTS_FOR_ORDER_QUERY = groq`*[
+  _type == "product" && _id in $ids && isActive != false
+]{ _id, name, price, stock }`;
+
+export const ORDERS_QUERY = groq`*[_type == "order"]
+  | order(createdAt desc){
+  _id,
+  reference,
+  customerName,
+  phone,
+  email,
+  total,
+  paymentMethod,
+  status,
+  createdAt,
+  items[]{ name, unitPrice, quantity, lineTotal }
+}`;
+
+const ORDER_FIELDS = `{
+  _id,
+  reference,
+  customerName,
+  phone,
+  email,
+  total,
+  paymentMethod,
+  status,
+  createdAt,
+  items[]{ name, unitPrice, quantity, lineTotal }
+}`;
+
+// Commandes d'une cliente connectee : par identifiant Clerk ou par l'e-mail
+// de son compte (elle a pu commander avant de creer le compte).
+export const ORDERS_BY_USER_QUERY = groq`*[
+  _type == "order" &&
+  ((defined($userId) && clerkUserId == $userId) ||
+   ($email != "" && email == $email))
+] | order(createdAt desc) ${ORDER_FIELDS}`;
+
+// Recherche d'une invitee : la reference SEULE ne suffit pas, le telephone
+// doit correspondre. Sinon n'importe qui pourrait lire les commandes des
+// autres en devinant des references.
+export const ORDER_BY_REFERENCE_QUERY = groq`*[
+  _type == "order" &&
+  reference == $reference &&
+  phone == $phone
+][0] ${ORDER_FIELDS}`;
