@@ -5,6 +5,7 @@ export default clerkMiddleware();
 export const config = {
   matcher: [
     "/mes-reservations(.*)",
+    "/mes-commandes(.*)",
     "/reservation(.*)",
     "/admin(.*)",
     "/api/bookings(.*)",
