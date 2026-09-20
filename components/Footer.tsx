@@ -33,7 +33,7 @@ const categories = [
   { label: "Extension", href: "/categories/extension" },
   { label: "Coloration", href: "/categories/coloration" },
   { label: "Pédicure et Manicure", href: "/categories/pedicure-et-manicure" },
-  { label: "Soin Visage", href: "/categories/soins-de-visage" },
+  { label: "Soins de Visage", href: "/categories/soins-de-visage" },
 ];
 
 const infoLinks = [
