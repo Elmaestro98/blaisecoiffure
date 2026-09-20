@@ -1,11 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { l1 } from "@/Image/banner";
-import {
-  sitePhoneDisplay,
-  sitePhoneE164,
-  siteWhatsApp,
-} from "@/lib/site";
+import { sitePhoneDisplay, sitePhoneE164, siteWhatsApp } from "@/lib/site";
 import { Truck, Award, Banknote } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaTiktok } from "react-icons/fa";
 
@@ -26,8 +22,8 @@ const features = [
   },
   {
     icon: Banknote,
-    title: "Paiement au choix",
-    subtitle: "Espèces - Orange Money - Carte bancaire",
+    title: "Paiement Sécurisé",
+    subtitle: "Espèces - Wave - Carte bancaire",
   },
 ];
 

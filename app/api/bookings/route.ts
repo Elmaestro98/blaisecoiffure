@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getWriteClient } from "@/sanity/lib/writeClient";
+import { sendBookingEmails } from "@/lib/email";
 
 const WHATSAPP_RECIPIENT_PHONE = process.env.WHATSAPP_RECIPIENT_PHONE;
 
@@ -62,6 +63,23 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     });
 
+    // E-mails : accuse de reception au client + notification au salon.
+    // La reservation est deja enregistree ; un echec d'envoi ne doit pas
+    // la faire echouer, on se contente de le signaler dans la reponse.
+    const emails = await sendBookingEmails({
+      reference: booking._id,
+      clientName: String(fullName),
+      email: String(email),
+      phone: String(phone),
+      serviceName: String(service),
+      date: String(date),
+      time: String(time),
+      notes: notes ? String(notes) : "",
+    }).catch((error) => {
+      console.error("Envoi des e-mails impossible :", error);
+      return { client: false, salon: false };
+    });
+
     let whatsappUrl = "";
     if (WHATSAPP_RECIPIENT_PHONE) {
       const whatsappMessage = [
@@ -87,6 +105,7 @@ export async function POST(request: Request) {
       {
         success: true,
         whatsappUrl,
+        emails,
         booking,
       },
       { status: 201 },
