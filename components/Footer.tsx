@@ -26,18 +26,21 @@ const features = [
   },
 ];
 
+// Le "/" initial est obligatoire : sans lui le lien est calculé à partir de la
+// page courante (/produits/x -> /produits/categories/extension -> 404).
+// Les slugs doivent correspondre exactement aux catégories créées dans Sanity.
 const categories = [
-  { label: "Extension", href: "categories/extension" },
-  { label: "Coloration", href: "categories/coloration" },
-  { label: "Pédicure et Manicure", href: "categories/pedicure-et-manicure" },
-  { label: "Soin Visage", href: "categories/soins-de-visage" },
+  { label: "Extension", href: "/categories/extension" },
+  { label: "Coloration", href: "/categories/coloration" },
+  { label: "Pédicure et Manicure", href: "/categories/pedicure-et-manicure" },
+  { label: "Soin Visage", href: "/categories/soins-de-visage" },
 ];
 
 const infoLinks = [
-  { label: "Mon compte", href: "/compte" },
-  { label: "Condition d'utilisations", href: "/conditions-utilisation" },
-  { label: "Livraison", href: "/livraison" },
-  { label: "Politique de Retour", href: "/politique-retour" },
+  { label: "Mon compte", href: "/mes-reservations" },
+  { label: "Toutes les catégories", href: "/categories" },
+  { label: "Nos services", href: "/services" },
+  { label: "Prendre rendez-vous", href: "/reservation" },
 ];
 
 const socialLinks = [
@@ -55,7 +58,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer>
+    <footer id="contact" className="scroll-mt-24">
       <div className="bg-neutral-100">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 text-center sm:grid-cols-3">
           {features.map(({ icon: Icon, title, subtitle }) => (

@@ -71,7 +71,7 @@ export function GallerySection({
   }, [lightboxIndex, filteredItems.length]);
 
   return (
-    <section className="py-16 sm:py-20">
+    <section id="galerie" className="scroll-mt-24 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4">
         <div className="text-center">
           <p className="text-sm text-black  font-semibold uppercase tracking-wide">

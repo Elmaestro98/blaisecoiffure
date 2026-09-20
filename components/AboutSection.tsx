@@ -29,7 +29,7 @@ export function AboutSection({
     typeof imageSrc === "string" ? imageSrc : (imageSrc?.asset?.url ?? null);
 
   return (
-    <section className="py-16 sm:py-20">
+    <section id="apropos" className="scroll-mt-24 py-16 sm:py-20">
       <div
         className={`mx-auto grid max-w-6xl gap-10 px-4 sm:grid-cols-2 sm:items-center ${
           reverse ? "sm:[&>*:first-child]:order-2" : ""

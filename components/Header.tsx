@@ -10,18 +10,12 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import HeaderMenu from "./HeaderMenu";
 import useStore from "@/store";
+import { headerData } from "@/constants/data";
 import type { ProductSummary } from "@/type/products";
 
 type HeaderProps = {
   products: ProductSummary[];
 };
-
-// À aligner avec les liens de HeaderMenu
-const mobileLinks = [
-  { label: "Accueil", href: "/" },
-  { label: "Produits", href: "/#produits" },
-  { label: "Réservation", href: "/reservation" },
-];
 
 const Header = ({ products }: HeaderProps) => {
   const pathname = usePathname();
@@ -147,8 +141,8 @@ const Header = ({ products }: HeaderProps) => {
             onClick={() => setIsMenuOpen(true)}
             className={
               isHome
-                ? "shrink-0 rounded-full bg-white/10 p-2 text-white backdrop-blur transition hover:bg-white/20 md:hidden"
-                : "shrink-0 rounded-full bg-neutral-100 p-2 text-neutral-800 transition hover:bg-neutral-200 md:hidden"
+                ? "shrink-0 rounded-full bg-white/10 p-2 text-white backdrop-blur transition hover:bg-white/20 lg:hidden"
+                : "shrink-0 rounded-full bg-neutral-100 p-2 text-neutral-800 transition hover:bg-neutral-200 lg:hidden"
             }
           >
             <Menu className="h-5 w-5" />
@@ -158,6 +152,18 @@ const Header = ({ products }: HeaderProps) => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* CTA principal : visible dès lg (sur mobile il est en bas du menu) */}
+          <Link
+            href="/reservation"
+            className={
+              isHome
+                ? "hidden shrink-0 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#1A0A0D] transition hover:bg-[#F1C8C8] lg:inline-flex"
+                : "hidden shrink-0 rounded-full bg-[#B8283A] px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 lg:inline-flex"
+            }
+          >
+            Réserver
+          </Link>
+
           {isSearchOpen ? (
             <div className="fixed inset-x-3 top-6 z-50 sm:relative sm:inset-auto sm:z-auto">
               <form
@@ -255,7 +261,7 @@ const Header = ({ products }: HeaderProps) => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-50 md:hidden"
+            className="fixed inset-0 z-50 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -293,14 +299,14 @@ const Header = ({ products }: HeaderProps) => {
               </div>
 
               <ul className="mt-8 flex flex-col">
-                {mobileLinks.map((link) => (
+                {headerData.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
                       onClick={closeMenu}
                       className="block border-b border-neutral-100 py-4 text-lg font-semibold transition hover:text-[#B8283A]"
                     >
-                      {link.label}
+                      {link.title}
                     </Link>
                   </li>
                 ))}
