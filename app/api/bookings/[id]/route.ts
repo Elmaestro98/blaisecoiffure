@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { client } from "@/sanity/lib/client";
+import { getWriteClient } from "@/sanity/lib/writeClient";
+import { isAdminEmail, primaryEmailOf } from "@/lib/admin";
 
 export async function PATCH(
   request: Request,
@@ -12,11 +13,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
     }
 
-    const adminEmail =
-      process.env.ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
-    const userEmail = user.emailAddresses?.[0]?.emailAddress ?? "";
-
-    if (adminEmail && userEmail !== adminEmail) {
+    // Refus par defaut : seule une adresse administrateur connue passe.
+    if (!isAdminEmail(primaryEmailOf(user))) {
       return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
     }
 
@@ -28,7 +26,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
     }
 
-    const updated = await client.patch(id).set({ status }).commit();
+    // Ecrire dans Sanity exige un jeton : le client de lecture n'en a pas.
+    const updated = await getWriteClient().patch(id).set({ status }).commit();
 
     return NextResponse.json({ success: true, booking: updated });
   } catch (error) {

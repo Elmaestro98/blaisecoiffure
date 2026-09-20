@@ -1,5 +1,6 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
+import { isAdminEmail, primaryEmailOf } from "@/lib/admin";
 import { client } from "@/sanity/lib/client";
 import { BOOKINGS_QUERY } from "@/sanity/queries";
 import AdminReservationsTable from "@/components/AdminReservationsTable";
@@ -11,15 +12,16 @@ export default async function AdminReservationsPage() {
     redirect("/");
   }
 
-  const adminEmail =
-    process.env.ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
-  const userEmail = user.emailAddresses?.[0]?.emailAddress ?? "";
-
-  if (adminEmail && userEmail !== adminEmail) {
+  // Refus par defaut : seule une adresse administrateur connue passe.
+  if (!isAdminEmail(primaryEmailOf(user))) {
     redirect("/");
   }
 
-  const bookings = await client.fetch(BOOKINGS_QUERY);
+  // Lecture sans cache CDN : un back-office doit toujours afficher l'etat
+  // reel, y compris les reservations et les changements de statut recents.
+  const bookings = await client
+    .withConfig({ useCdn: false })
+    .fetch(BOOKINGS_QUERY);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
