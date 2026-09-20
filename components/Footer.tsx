@@ -1,6 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { l1 } from "@/Image/banner";
+import {
+  sitePhoneDisplay,
+  sitePhoneE164,
+  siteWhatsApp,
+} from "@/lib/site";
 import { Truck, Award, Banknote } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaWhatsapp, FaTiktok } from "react-icons/fa";
 
@@ -46,7 +51,11 @@ const infoLinks = [
 const socialLinks = [
   { icon: FaFacebookF, href: "https://facebook.com", label: "Facebook" },
   { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: FaWhatsapp, href: "https://wa.me/221783083737", label: "WhatsApp" },
+  {
+    icon: FaWhatsapp,
+    href: `https://wa.me/${siteWhatsApp}`,
+    label: "WhatsApp",
+  },
   {
     icon: FaTiktok,
     href: "https://www.tiktok.com/@blaiseabobade?_r=1&_t=ZS-99s6HhNV76W",
@@ -96,7 +105,11 @@ export function Footer() {
                 blaisechoco@gmail.com
               </a>
             </p>
-            <p className="mt-1 text-sm text-neutral-600">+221 77 461 50 64</p>
+            <p className="mt-1 text-sm text-neutral-600">
+              <a href={`tel:${sitePhoneE164}`} className="hover:underline">
+                {sitePhoneDisplay}
+              </a>
+            </p>
           </div>
 
           <FooterColumn title="Catégories" links={categories} />

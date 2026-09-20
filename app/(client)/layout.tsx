@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { CartDrawer } from "@/components/CartDrawer";
 import { Footer } from "@/components/Footer";
+import { LocalBusinessJsonLd } from "@/components/LocalBusinessJsonLd";
 import { sanityFetch } from "@/sanity/lib/live";
 import { ANNOUNCEMENT_BAR_QUERY, PRODUCTS_QUERY } from "@/sanity/queries";
 import type { ProductSummary } from "@/type/products";
@@ -32,6 +33,7 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider>
+      <LocalBusinessJsonLd />
       <div className="flex min-h-screen flex-col">
         {announcementBar?.messages?.length ? (
           <AnnouncementBar

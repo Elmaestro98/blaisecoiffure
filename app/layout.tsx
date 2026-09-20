@@ -4,9 +4,36 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Manrope, Oswald } from "next/font/google";
 import type { Metadata } from "next";
 import { SanityLive } from "@/sanity/lib/live";
+import { siteDescription, siteName, siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Blaise Coiffure",
+  // Base obligatoire pour que Next génère des URLs absolues (sitemap, partages)
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: `${siteName} — Salon de coiffure à Saint-Louis, Sénégal`,
+    template: `%s | ${siteName}`,
+  },
+  description: siteDescription,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: siteUrl,
+    siteName,
+    title: `${siteName} — Salon de coiffure à Saint-Louis, Sénégal`,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  // Code fourni par Google Search Console (méthode "Balise HTML").
+  // Se renseigne dans la variable d'environnement, pas en dur dans le code.
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
   icons: {
     icon: "/logo2.jpeg",
   },

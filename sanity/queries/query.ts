@@ -308,3 +308,18 @@ export const BRANDS_QUERY = groq`*[
   "slug": slug.current,
   logo ${IMAGE_PROJECTION}
 }`;
+
+// Slugs + date de derniere modification, pour app/sitemap.ts.
+// Seules les catégories "product"/"both" sont incluses : /categories/[slug]
+// renvoie un 404 pour les catégories purement "service".
+export const SITEMAP_QUERY = groq`{
+  "services": *[
+    _type == "service" && isActive != false && defined(slug.current)
+  ]{ "slug": slug.current, _updatedAt },
+  "products": *[
+    _type == "product" && isActive != false && defined(slug.current)
+  ]{ "slug": slug.current, _updatedAt },
+  "categories": *[
+    _type == "category" && appliesTo in ["product", "both"] && defined(slug.current)
+  ]{ "slug": slug.current, _updatedAt }
+}`;
