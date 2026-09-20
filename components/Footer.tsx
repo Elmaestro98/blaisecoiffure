@@ -63,7 +63,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer id="contact" className="scroll-mt-24">
+    <footer className="scroll-mt-24">
       <div className="bg-neutral-100">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 text-center sm:grid-cols-3">
           {features.map(({ icon: Icon, title, subtitle }) => (
