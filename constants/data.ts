@@ -5,7 +5,7 @@ export const headerData = [
   { title: "Services", href: "/services" },
   { title: "Produits", href: "/#produits" },
   { title: "Galerie", href: "/#galerie" },
-  { title: "Mes réservations", href: "/mes-reservations" },
-  { title: "Mes commandes", href: "/mes-commandes" },
+  { title: "Réservations", href: "/mes-reservations" },
+  { title: "Commandes", href: "/mes-commandes" },
   { title: "À propos", href: "/#apropos" },
 ];
