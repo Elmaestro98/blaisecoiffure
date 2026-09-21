@@ -15,6 +15,8 @@ import { P1, P2, P3, P4 } from "@/Image/banner";
 const slides = [
   {
     image: P1,
+    // position du visage dans la photo (évite de couper la tête)
+    focus: "35% 30%",
     eyebrow: "L expertise Blaise",
     title: "Révélez votre style.",
     description:
@@ -23,6 +25,7 @@ const slides = [
   },
   {
     image: P4,
+    focus: "50% 30%",
     eyebrow: "L expertise Blaise",
     title: "Révélez votre style.",
     description:
@@ -31,6 +34,7 @@ const slides = [
   },
   {
     image: P2,
+    focus: "50% 40%",
     eyebrow: "Le geste précision",
     title: "Une couleur qui vous ressemble.",
     description:
@@ -40,6 +44,7 @@ const slides = [
 
   {
     image: P3,
+    focus: "50% 30%",
     eyebrow: "Le geste précision",
     title: "Pour tout type de peau.",
     description:
@@ -48,7 +53,7 @@ const slides = [
   },
 ];
 
-const categories = ["Coupe Homme", "Coloration", "Soin Visage"];
+const categories = ["Coupe Homme", "Coupe Femme", "Coloration", "Soin Visage"];
 
 export function Banner() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,21 +102,35 @@ export function Banner() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="absolute inset-0"
           >
+            {/* Fond : même photo floutée, remplit tout le banner sans pixeliser */}
             <Image
               src={slide.image}
-              alt={`${slide.title} - Blaise Coiffure`}
+              alt=""
+              aria-hidden
               fill
-              priority={activeSlide === 0}
-              quality={90}
-              sizes="(max-width: 768px) 100vw, 1280px"
-              className="object-cover object-center"
+              quality={40}
+              sizes="50vw"
+              className="hidden scale-110 object-cover opacity-50 blur-2xl sm:block"
             />
+            {/* Photo nette : plein écran sur mobile, moitié droite à partir de sm */}
+            <div className="absolute inset-0 sm:left-auto sm:w-[60%] lg:w-[52%] sm:mask-[linear-gradient(to_right,transparent,black_30%)]">
+              <Image
+                src={slide.image}
+                alt={`${slide.title} - Blaise Coiffure`}
+                fill
+                priority={activeSlide === 0}
+                quality={90}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 60vw, 700px"
+                className="object-cover"
+                style={{ objectPosition: slide.focus }}
+              />
+            </div>
           </motion.div>
         </AnimatePresence>
       </motion.div>
 
       {/* Mobile : dégradé vertical (le texte occupe toute la largeur) */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(26,10,13,.55)_0%,rgba(26,10,13,.78)_55%,rgba(26,10,13,.96)_100%)] sm:hidden" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(26,10,13,.30)_0%,rgba(26,10,13,.72)_55%,rgba(26,10,13,.96)_100%)] sm:hidden" />
       {/* Tablette / desktop : dégradé horizontal (texte à gauche) */}
       <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(26,10,13,.96)_0%,rgba(26,10,13,.78)_38%,rgba(122,18,32,.28)_72%,rgba(26,10,13,.16)_100%)] sm:block" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A0D]/70 via-transparent to-[#1A0A0D]/20" />
