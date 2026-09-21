@@ -10,7 +10,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { ArrowLeft, ArrowRight, CalendarDays, Play } from "lucide-react";
-import { P1, P4 } from "@/Image/banner";
+import { P1, P2, P3, P4 } from "@/Image/banner";
 
 const slides = [
   {
@@ -23,15 +23,32 @@ const slides = [
   },
   {
     image: P4,
+    eyebrow: "L expertise Blaise",
+    title: "Révélez votre style.",
+    description:
+      "Coupes, soins et conseils personnalisés pour une allure qui vous ressemble.",
+    category: "Coupe Femme",
+  },
+  {
+    image: P2,
     eyebrow: "Le geste précision",
     title: "Une couleur qui vous ressemble.",
     description:
       "Des nuances travaillées avec soin pour illuminer votre visage et votre quotidien.",
     category: "Coloration",
   },
+
+  {
+    image: P3,
+    eyebrow: "Le geste précision",
+    title: "Pour tout type de peau.",
+    description:
+      "Des nuances travaillées avec soin pour illuminer votre visage et votre quotidien.",
+    category: "Soin Visage",
+  },
 ];
 
-const categories = ["Coupe Homme", "Coloration", "Tresses", "Soin Visage"];
+const categories = ["Coupe Homme", "Coloration", "Soin Visage"];
 
 export function Banner() {
   const containerRef = useRef<HTMLDivElement>(null);
