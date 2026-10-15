@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { client } from "@/sanity/lib/client";
+import { primaryEmailOf } from "@/lib/admin";
+import { getWriteClient } from "@/sanity/lib/writeClient";
 import { BOOKINGS_BY_USER_QUERY } from "@/sanity/queries";
 
 const statusLabel: Record<string, string> = {
@@ -29,8 +30,12 @@ export default async function MyReservationsPage() {
     redirect("/");
   }
 
-  const email = user.emailAddresses?.[0]?.emailAddress ?? "";
-  const bookings = await client.fetch(BOOKINGS_BY_USER_QUERY, {
+  // Seule l'adresse principale ET verifiee compte : sinon n'importe qui
+  // pourrait ajouter l'e-mail d'un autre client et voir ses rendez-vous.
+  const email = primaryEmailOf(user) ?? "";
+  // Lecture avec le jeton serveur (jamais envoye au navigateur) et sans
+  // cache CDN : une reservation toute neuve apparait immediatement.
+  const bookings = await getWriteClient().fetch(BOOKINGS_BY_USER_QUERY, {
     email,
     userId: user.id,
   });

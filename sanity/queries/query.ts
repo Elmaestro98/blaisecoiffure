@@ -238,7 +238,10 @@ export const PRODUCT_BY_IDENTIFIER_QUERY = groq`*[
 
 export const BOOKINGS_BY_USER_QUERY = groq`*[
   _type == "bookingRequest" &&
-  (email == $email || clerkUserId == $userId)
+  (
+    ($email != "" && lower(email) == lower($email)) ||
+    clerkUserId == $userId
+  )
 ] | order(createdAt desc) {
   _id,
   service->{_id, name, "slug": slug.current},

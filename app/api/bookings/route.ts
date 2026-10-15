@@ -14,14 +14,10 @@ const WHATSAPP_RECIPIENT_PHONE =
 
 export async function POST(request: Request) {
   try {
-    const user = await currentUser();
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Vous devez être connecté pour réserver." },
-        { status: 401 },
-      );
-    }
+    // La reservation est ouverte a tous, connecte ou non. Si le client est
+    // connecte, on rattache la reservation a son compte ; si Clerk echoue,
+    // on continue sans compte plutot que de bloquer la reservation.
+    const user = await currentUser().catch(() => null);
 
     const body = await request.json();
     const {
@@ -66,7 +62,7 @@ export async function POST(request: Request) {
       appointmentTime: String(time),
       notes: notes ? String(notes) : "",
       status: "pending",
-      clerkUserId: user.id,
+      clerkUserId: user?.id ?? "",
       createdAt: new Date().toISOString(),
     });
 

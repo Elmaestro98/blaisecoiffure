@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import {
   ArrowRight,
   CalendarDays,
@@ -91,14 +92,21 @@ export default function BookingWizard({
   );
   const [date, setDate] = useState("");
   const [time, setTime] = useState(timeSlots[0]);
-  const [fullName, setFullName] = useState("");
+  const [fullNameInput, setFullName] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [emailInput, setEmail] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [whatsappUrl, setWhatsappUrl] = useState("");
+  const { isSignedIn, user } = useUser();
+
+  // Client connecte : tant qu'il n'a rien tape (valeur null), on affiche
+  // le nom et l'e-mail de son compte.
+  const fullName = fullNameInput ?? user?.fullName ?? "";
+  const email =
+    emailInput ?? user?.primaryEmailAddress?.emailAddress ?? "";
 
   const selectedService = useMemo(
     () =>
@@ -228,12 +236,14 @@ export default function BookingWizard({
               Envoyer sur WhatsApp
             </a>
           ) : null}
-          <Link
-            href="/mes-reservations"
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-[#8E2332] px-5 text-sm font-bold text-white transition hover:bg-[#711B28]"
-          >
-            Voir mes réservations
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/mes-reservations"
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-[#8E2332] px-5 text-sm font-bold text-white transition hover:bg-[#711B28]"
+            >
+              Voir mes réservations
+            </Link>
+          ) : null}
           <Link
             href="/"
             className="inline-flex h-12 items-center justify-center rounded-xl border border-[#E8D9D5] px-5 text-sm font-bold text-[#24171A] transition hover:bg-[#FBF7F5]"

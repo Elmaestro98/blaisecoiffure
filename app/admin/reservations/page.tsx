@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { isAdminEmail, primaryEmailOf } from "@/lib/admin";
-import { client } from "@/sanity/lib/client";
+import { getWriteClient } from "@/sanity/lib/writeClient";
 import { BOOKINGS_QUERY } from "@/sanity/queries";
 import AdminReservationsTable from "@/components/AdminReservationsTable";
 
@@ -19,9 +19,9 @@ export default async function AdminReservationsPage() {
 
   // Lecture sans cache CDN : un back-office doit toujours afficher l'etat
   // reel, y compris les reservations et les changements de statut recents.
-  const bookings = await client
-    .withConfig({ useCdn: false })
-    .fetch(BOOKINGS_QUERY);
+  // Le jeton serveur permet de lire les reservations meme si le dataset
+  // Sanity est prive (ce qu'il doit etre : ce sont des donnees clients).
+  const bookings = await getWriteClient().fetch(BOOKINGS_QUERY);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
